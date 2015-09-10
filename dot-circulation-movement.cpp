@@ -17,12 +17,95 @@ GLFWwindow* window;
 #define PI 3.14159265358979323846
 
 int window_width  = 1024;
-int window_height = 768;
-int decoration    = 1;
+int window_height = 1024;
+int decoration    = 0;
 int fullscreen    = 0;
 int resizable     = 1;
 
 float window_ratio = window_width * 1.0 / window_height;
+
+int N = 12 * 2;
+const int NN = 12 * 2;
+/*
+int map[NN][NN] = {
+3,3,3,2,3,2, 3,2,3,2,3,2,
+4,1,2,1,4,2, 4,3,4,3,4,2,
+3,4,2,3,4,2, 4,1,2,1,1,2,
+4,1,3,4,2,1, 3,4,3,2,4,1,
+3,4,2,1,3,2, 4,2,1,3,3,2,
+4,1,1,4,1,3, 4,2,4,1,1,1,
+
+3,3,3,2,4,2, 1,3,2,3,3,2,
+4,1,1,3,4,2, 4,1,3,4,2,1,
+3,2,4,1,2,1, 3,4,2,1,3,2,
+4,3,3,4,3,2, 4,2,1,4,2,1,
+4,2,1,2,1,2, 4,2,3,4,3,2,
+4,1,4,1,4,1, 4,1,4,1,1,1,};*/
+int map[NN][NN] = {
+2,1,2,1,2,1,2,1,2,1,1,1, 2,1,2,1,2,1,2,1,2,1,1,1,
+2,4,1,4,1,4,2,4,3,2,3,4, 2,4,1,4,1,4,2,4,3,2,3,4,
+2,3,3,2,3,4,2,4,1,2,4,1, 2,3,3,2,3,4,2,4,1,2,4,1,
+3,4,2,1,4,1,3,2,4,1,3,4, 3,4,2,1,4,1,3,2,4,1,3,4,
+2,1,1,3,2,4,1,1,3,2,4,1, 2,1,1,3,2,4,2,1,3,2,4,1,
+3,3,3,4,3,2,3,3,4,3,3,4, 3,3,3,4,2,4,1,3,4,3,3,4,
+2,1,1,2,1,1,4,1,2,1,1,1, 2,1,1,2,1,3,2,4,2,1,1,1,
+3,2,4,1,3,3,2,4,1,3,3,4, 3,2,4,1,3,4,2,4,1,3,3,4,
+2,1,3,2,4,1,3,2,3,4,2,1, 2,1,3,2,4,1,3,2,3,4,2,1,
+3,2,4,3,2,4,2,1,4,1,1,4, 3,2,4,3,2,4,2,1,4,1,1,4,
+2,1,4,1,2,4,2,3,2,3,2,4, 2,1,4,1,2,4,2,3,2,3,2,4,
+3,3,3,4,3,4,3,4,3,4,2,4, 2,3,3,4,3,4,3,4,3,4,3,4,
+
+2,1,2,1,2,1,2,1,2,1,1,4, 1,4,2,1,2,1,2,1,2,1,1,1,
+2,4,1,4,1,4,2,4,3,2,3,3, 2,4,1,4,1,4,2,4,3,2,3,4,
+2,3,3,2,3,4,2,4,1,2,4,1, 2,3,3,2,3,4,2,4,1,2,4,1,
+3,4,2,1,4,1,3,2,4,1,3,4, 3,4,2,1,4,1,3,2,4,1,3,4,
+2,1,1,3,2,4,2,1,3,2,4,1, 2,1,1,3,2,4,1,1,3,2,4,1,
+3,3,3,4,2,4,1,3,4,3,3,4, 3,3,3,4,3,2,3,3,4,3,3,4,
+2,1,1,2,1,3,2,4,2,1,1,1, 2,1,1,2,1,1,4,1,2,1,1,1,
+3,2,4,1,3,4,2,4,1,3,3,4, 3,2,4,1,3,3,2,4,1,3,3,4,
+2,1,3,2,4,1,3,2,3,4,2,1, 2,1,3,2,4,1,3,2,3,4,2,1,
+3,2,4,3,2,4,2,1,4,1,1,4, 3,2,4,3,2,4,2,1,4,1,1,4,
+2,1,4,1,2,4,2,3,2,3,2,4, 2,1,4,1,2,4,2,3,2,3,2,4,
+3,3,3,4,3,4,3,4,3,4,3,4, 3,3,3,4,3,4,3,4,3,4,3,4,
+
+};
+
+bool Valid(int y, int x) {
+	if(y < 0 || y >= N || x < 0 || x >= N) return false;
+	return true;
+}
+
+void Traverse(int *a, int x, int y, int n) {
+	if(n == N * N && ((x == 1 && y == 0) || (x == 0 && y == 1))) {
+		if(x == 1 && y == 0) a[y * N + x] = 1;
+		if(x == 0 && y == 1) a[y * N + x] = 4;
+/*		for(int i = N - 1; i >= 0; i--) {
+			for(int j = 0; j < N; j++) cout << Arrow(a[i * N + j]) << " ";
+		}*/
+		a[y * N + x] = 0;
+		return;
+	}
+	if(Valid(y - 1, x) && !a[(y - 1) * N + x]) {
+		a[y * N + x] = 4;
+		Traverse(a, x, y - 1, n + 1);
+		a[y * N + x] = 0;
+	}
+	if(Valid(y, x - 1) && !a[y * N + x - 1]) {
+		a[y * N + x] = 1;
+		Traverse(a, x - 1, y, n + 1);
+		a[y * N + x] = 0;
+	}
+	if(Valid(y + 1, x) && !a[(y + 1) * N + x]) {
+		a[y * N + x] = 2;
+		Traverse(a, x, y + 1, n + 1);
+		a[y * N + x] = 0;
+	}
+	if(Valid(y, x + 1) && !a[y * N + x + 1]) {
+		a[y * N + x] = 3;
+		Traverse(a, x + 1, y, n + 1);
+		a[y * N + x] = 0;
+	}
+}
 
 int Digit(int n) {
 	int i = 0;
@@ -38,7 +121,7 @@ void OptParse(char** argv) {
 	optparse_init(&options, argv);
 	int option;
 
-	while((option = optparse(&options, "dfrw: h")) != -1) {
+	while((option = optparse(&options, "dfrw: n: h")) != -1) {
 		switch(option) {
 			case 'd':
 				decoration = 0;
@@ -53,6 +136,10 @@ void OptParse(char** argv) {
 				window_width = atoi(options.optarg);
 				window_height = atoi(options.optarg + Digit(window_width) + 1);
 				window_ratio = window_width * 1.0 / window_height;
+				break;
+
+			case 'n':
+				N = atoi(options.optarg);
 				break;
 
 			case 'h':
@@ -112,11 +199,12 @@ int InitGL() {
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	glClearColor( 0.1f, 0.1f, 0.1f, 0.0f);
+	glClearColor( 1.0f, 1.0f, 1.0f, 0.0f);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
+	glEnable(GL_PROGRAM_POINT_SIZE);
 
 	return 0;
 }
@@ -130,28 +218,65 @@ void Render() {
 
 	GLuint MVPID = glGetUniformLocation(programID, "MVP");
 
-	static const GLfloat g_vertex_buffer_data[] = {
-		-1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		 0.0f,  1.0f, -1.0f,
-	};
+	GLfloat g_vertex_buffer_data[NN][NN][3] = {};
+	GLfloat g_vertex_buffer_data_d[NN][NN][3] = {};
 
 	GLuint vertex_buffer;
 	glGenBuffers(1, &vertex_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+	GLuint vertex_buffer_d;
+	glGenBuffers(1, &vertex_buffer_d);
 
-
-
+//	glPointSize(10);
 	do {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glUseProgram(programID);
 
+		double time_current = glfwGetTime();
+
+		for(int i = 0; i < NN; i++)
+			for(int j = 0; j < NN; j++) {
+				int i_d, j_d;
+				switch(map[i][j]) {
+					case 1: i_d = i; j_d = j - 1; break;
+					case 2: i_d = i + 1; j_d = j; break;
+					case 3: i_d = i; j_d = j + 1; break;
+					case 4: i_d = i - 1; j_d = j; break;
+				}
+			//	float ratio = glm::clamp(tan(time_current), 0.0, 1.0);
+				float ratio = pow(glm::fract(time_current), 2);
+				float ratio_d = glm::fract(time_current);
+				float gap = 2.0 / (NN - 1);
+				g_vertex_buffer_data[j][i][0] = (-1 + gap * j) * (1 - ratio) + (-1 + gap * j_d) * ratio;
+				g_vertex_buffer_data[j][i][1] = (-1 + gap * i) * (1 - ratio) + (-1 + gap * i_d) * ratio;
+				g_vertex_buffer_data[j][i][2] = 2.4;
+				glm::vec2 direction = glm::vec2(g_vertex_buffer_data[j][i][0] - (-1 + gap * j), g_vertex_buffer_data[j][i][1] - (-1 + gap * i));
+				direction = glm::normalize(direction);
+				g_vertex_buffer_data_d[j][i][0] = g_vertex_buffer_data[j][i][0] - direction.x * gap * (1 - std::abs(ratio_d * 2 - 1)) * 0.5;
+				g_vertex_buffer_data_d[j][i][1] = g_vertex_buffer_data[j][i][1] - direction.y * gap * (1 - std::abs(ratio_d * 2 - 1)) * 0.5;
+				g_vertex_buffer_data_d[j][i][2] = 2.4;
+		}
+
+		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_d);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data_d), g_vertex_buffer_data_d, GL_DYNAMIC_DRAW);
+
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
 		glVertexAttribPointer(
 			0,        // The attribute we want to configure
+			3,        // size
+			GL_FLOAT, // type
+			GL_FALSE, // normalized?
+			0,        // stride
+			(void*)0  // array buffer offset
+		);
+
+		glEnableVertexAttribArray(1);
+		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_d);
+		glVertexAttribPointer(
+			1,        // The attribute we want to configure
 			3,        // size
 			GL_FLOAT, // type
 			GL_FALSE, // normalized?
@@ -166,15 +291,13 @@ void Render() {
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
 		glUniformMatrix4fv(MVPID, 1, GL_FALSE, &MVP[0][0]);
 
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_POINTS, 0, NN * NN);
 
 		glDisableVertexAttribArray(0);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	} while(glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && !glfwWindowShouldClose(window));
-
-
 
 	glDeleteBuffers(1, &vertex_buffer);
 	glDeleteVertexArrays(1, &VertexArrayID);

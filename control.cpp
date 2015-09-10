@@ -98,8 +98,6 @@ void computeMatricesFromInputs(){
 	}
 	if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 		position = glm::vec3(0, 0, 5);
-		up = vec3(0, 1, 0);
-		direction = vec3(0, 0, -5);
 		horizontalAngle = 3.14f;
 		verticalAngle = 0.0f;
 	}
