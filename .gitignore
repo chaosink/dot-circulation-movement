@@ -28,3 +28,6 @@
 *.app
 dot-circulation-movement
 genmap
+
+# Raw video
+raw_video

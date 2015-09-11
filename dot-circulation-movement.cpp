@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -23,6 +24,8 @@ int fullscreen    = 0;
 int resizable     = 1;
 
 float window_ratio = window_width * 1.0 / window_height;
+int fps = 25;
+int print = 1;
 
 int N = 12 * 2;
 const int NN = 12 * 2;
@@ -226,13 +229,13 @@ void Render() {
 	GLuint vertex_buffer_d;
 	glGenBuffers(1, &vertex_buffer_d);
 
+	int frame_count = 0;
+
 //	glPointSize(10);
 	do {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glUseProgram(programID);
-
-		double time_current = glfwGetTime();
 
 		for(int i = 0; i < NN; i++)
 			for(int j = 0; j < NN; j++) {
@@ -243,9 +246,8 @@ void Render() {
 					case 3: i_d = i; j_d = j + 1; break;
 					case 4: i_d = i - 1; j_d = j; break;
 				}
-			//	float ratio = glm::clamp(tan(time_current), 0.0, 1.0);
-				float ratio = pow(glm::fract(time_current), 2);
-				float ratio_d = glm::fract(time_current);
+				float ratio_d = glm::fract(frame_count / 1.0 / fps);
+				float ratio = pow(ratio_d, 2);
 				float gap = 2.0 / (NN - 1);
 				g_vertex_buffer_data[j][i][0] = (-1 + gap * j) * (1 - ratio) + (-1 + gap * j_d) * ratio;
 				g_vertex_buffer_data[j][i][1] = (-1 + gap * i) * (1 - ratio) + (-1 + gap * i_d) * ratio;
@@ -294,6 +296,13 @@ void Render() {
 		glDrawArrays(GL_POINTS, 0, NN * NN);
 
 		glDisableVertexAttribArray(0);
+
+		double time_current = glfwGetTime();
+		double time_accurate = ++frame_count / 1.0 / fps;
+		double time_delta = time_accurate - time_current;
+		time_delta = time_delta > 0 ? time_delta : 0;
+		if(print) printf("frame_count:%d time_accurate:%lf time_current:%lf time_delta:%lf\n", frame_count, time_accurate, time_current, time_delta);
+		usleep(time_delta * 1000000);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
