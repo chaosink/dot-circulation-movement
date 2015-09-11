@@ -237,8 +237,6 @@ void Render() {
 
 		glUseProgram(programID);
 
-		double time_current = glfwGetTime();
-
 		for(int i = 0; i < NN; i++)
 			for(int j = 0; j < NN; j++) {
 				int i_d, j_d;
@@ -248,8 +246,6 @@ void Render() {
 					case 3: i_d = i; j_d = j + 1; break;
 					case 4: i_d = i - 1; j_d = j; break;
 				}
-			//	float ratio = glm::clamp(tan(time_current), 0.0, 1.0);
-			//	float ratio_d = glm::fract(time_current);
 				float ratio_d = glm::fract(frame_count / 1.0 / fps);
 				float ratio = pow(ratio_d, 2);
 				float gap = 2.0 / (NN - 1);
@@ -304,7 +300,7 @@ void Render() {
 		frame[frame_count] = new GLbyte[window_width * window_height * 3];
 		glReadPixels(0, 0, window_width, window_height, GL_RGB, GL_UNSIGNED_BYTE, frame[frame_count++]);
 
-		time_current = glfwGetTime();
+		double time_current = glfwGetTime();
 		double time_accurate = frame_count / 1.0 / fps;
 		double time_delta = time_accurate - time_current;
 		time_delta = time_delta > 0 ? time_delta : 0;
