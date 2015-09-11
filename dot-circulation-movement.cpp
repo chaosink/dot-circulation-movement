@@ -306,6 +306,7 @@ void Render() {
 		time_delta = time_delta > 0 ? time_delta : 0;
 		if(print) printf("frame_count:%d time_accurate:%lf time_current:%lf time_delta:%lf\n", frame_count, time_accurate, time_current, time_delta);
 		usleep(time_delta * 1000000);
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	} while(glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && !glfwWindowShouldClose(window));
