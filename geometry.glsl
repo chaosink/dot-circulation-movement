@@ -17,7 +17,7 @@ uniform mat4 MVP;
 
 float PI = 3.14159265358979323846;
 int n = 16;
-float radius = 0.015;
+float radius = 0.018;
 
 void main() {
 	for(int i = 0; i < n; i++) {

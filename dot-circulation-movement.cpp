@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <unistd.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 GLFWwindow* window;
@@ -16,13 +16,15 @@ GLFWwindow* window;
 #define swap(a, b) (a) = (a) ^ (b), (b) = (a) ^ (b), (a) = (a) ^ (b)
 #define PI 3.14159265358979323846
 
-int window_width  = 1024;
-int window_height = 1024;
+int window_width  = 512;
+int window_height = 512;
 int decoration    = 0;
 int fullscreen    = 0;
 int resizable     = 1;
 
 float window_ratio = window_width * 1.0 / window_height;
+int fps = 25;
+int print = 1;
 
 int N = 12 * 2;
 const int NN = 12 * 2;
@@ -174,7 +176,7 @@ int InitGL() {
 		return -1;
 	}
 
-	glfwWindowHint(GLFW_SAMPLES, 4);
+	glfwWindowHint(GLFW_SAMPLES, 10);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -226,6 +228,9 @@ void Render() {
 	GLuint vertex_buffer_d;
 	glGenBuffers(1, &vertex_buffer_d);
 
+	GLbyte *frame[2000];
+	int frame_count = 0;
+
 //	glPointSize(10);
 	do {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -244,8 +249,9 @@ void Render() {
 					case 4: i_d = i - 1; j_d = j; break;
 				}
 			//	float ratio = glm::clamp(tan(time_current), 0.0, 1.0);
-				float ratio = pow(glm::fract(time_current), 2);
-				float ratio_d = glm::fract(time_current);
+			//	float ratio_d = glm::fract(time_current);
+				float ratio_d = glm::fract(frame_count / 1.0 / fps);
+				float ratio = pow(ratio_d, 2);
 				float gap = 2.0 / (NN - 1);
 				g_vertex_buffer_data[j][i][0] = (-1 + gap * j) * (1 - ratio) + (-1 + gap * j_d) * ratio;
 				g_vertex_buffer_data[j][i][1] = (-1 + gap * i) * (1 - ratio) + (-1 + gap * i_d) * ratio;
@@ -295,6 +301,15 @@ void Render() {
 
 		glDisableVertexAttribArray(0);
 
+		frame[frame_count] = new GLbyte[window_width * window_height * 3];
+		glReadPixels(0, 0, window_width, window_height, GL_RGB, GL_UNSIGNED_BYTE, frame[frame_count++]);
+
+		time_current = glfwGetTime();
+		double time_accurate = frame_count / 1.0 / fps;
+		double time_delta = time_accurate - time_current;
+		time_delta = time_delta > 0 ? time_delta : 0;
+		if(print) printf("frame_count:%d time_accurate:%lf time_current:%lf time_delta:%lf\n", frame_count, time_accurate, time_current, time_delta);
+		usleep(time_delta * 1000000);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	} while(glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && !glfwWindowShouldClose(window));
@@ -302,6 +317,9 @@ void Render() {
 	glDeleteBuffers(1, &vertex_buffer);
 	glDeleteVertexArrays(1, &VertexArrayID);
 	glDeleteProgram(programID);
+
+	FILE *out = fopen("raw_video", "wb");
+	for(int i = fps; i < 2 * fps; i++) fwrite(frame[i], window_width * window_height * 3, 1, out);
 }
 
 int main(int argc, char** argv) {
