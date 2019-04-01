@@ -20,6 +20,9 @@ int n = 16;
 float radius = 0.015;
 
 void main() {
+	vec4 direction = gl_in[0].gl_Position - vertexIn[0].color;
+	if(direction.y > 0 || abs(direction.x) > 0.00001f) return;
+
 	for(int i = 0; i < n; i++) {
 		gl_Position = MVP * gl_in[0].gl_Position;
 		EmitVertex();
@@ -30,7 +33,6 @@ void main() {
 		EndPrimitive();
 	}
 
-	vec4 direction = gl_in[0].gl_Position - vertexIn[0].color;
 	float len = length(direction);
 	direction = normalize(direction);
 	vec4 direction_d = direction;
