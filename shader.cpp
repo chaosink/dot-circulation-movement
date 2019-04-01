@@ -142,6 +142,6 @@ if(geometry_string)
 	glDeleteShader(VertexShaderID);
 	glDeleteShader(FragmentShaderID);
 	glDeleteShader(GeometryShaderID);
-	
+
 	return ProgramID;
 }

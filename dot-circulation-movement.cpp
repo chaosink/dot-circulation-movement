@@ -133,7 +133,7 @@ void OptParse(char** argv) {
 				break;
 			case 'r':
 				resizable = 0;
-				break;	
+				break;
 			case 'w':
 				window_width = atoi(options.optarg);
 				window_height = atoi(options.optarg + Digit(window_width) + 1);

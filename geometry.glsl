@@ -37,7 +37,7 @@ void main() {
 	direction_d.xy = direction_d.yx;
 	float gap = vertexIn[0].uv.x;
 	float len_d = gap - abs(len * 2 - gap);
-	
+
 	gl_Position = MVP * (vertexIn[0].color - direction * 0);
 	EmitVertex();
 	gl_Position = MVP * (gl_in[0].gl_Position + direction_d * radius * 0.5);
