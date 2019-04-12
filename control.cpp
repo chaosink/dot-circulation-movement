@@ -22,15 +22,18 @@ glm::mat4 getProjectionMatrix(){
 	return ProjectionMatrix;
 }
 
-
 // Initial position : on +Z
-glm::vec3 position = glm::vec3(0, 0, 5);
+const glm::vec3 positionInit = glm::vec3(0, 0, 4.34f);
 // Initial horizontal angle : toward -Z
-float horizontalAngle = 3.14f;
+const float horizontalAngleInit = 3.14f;
 // Initial vertical angle : none
-float verticalAngle = 0.0f;
+const float verticalAngleInit = 0.0f;
 // Initial Field of View
-float initialFoV = 45.0f;
+const float initialFoV = 45.0f;
+
+glm::vec3 position = positionInit;
+float horizontalAngle = horizontalAngleInit;
+float verticalAngle = verticalAngleInit;
 
 float speed = 5.0f; // 3 units / second
 float mouseSpeed = 0.002f;
@@ -40,6 +43,7 @@ void computeMatricesFromInputs(){
 	// glfwGetTime is called only once, the first time this function is called
 	static double lastTime = glfwGetTime();
 	static double xpos_last, ypos_last;
+	static auto init_mouse_pos = (glfwGetCursorPos(window, &xpos_last, &ypos_last), 0);
 
 	// Compute time difference between current and last frame
 	double currentTime = glfwGetTime();
@@ -97,9 +101,9 @@ void computeMatricesFromInputs(){
 		speed -= 1;
 	}
 	if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-		position = glm::vec3(0, 0, 5);
-		horizontalAngle = 3.14f;
-		verticalAngle = 0.0f;
+		position = positionInit;
+		horizontalAngle = horizontalAngleInit;
+		verticalAngle = verticalAngleInit;
 	}
 
 	float FoV = initialFoV;// - 5 * glfwGetMouseWheel(); // Now GLFW 3 requires setting up a callback for this. It's a bit too complicated for this beginner's tutorial, so it's disabled instead.
