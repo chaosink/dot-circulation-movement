@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <vector>
 #include <stdlib.h>
+#include <cmath>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -25,6 +27,7 @@ GLFWwindow* window;
 #include "optparse.hpp"
 #include "shader.hpp"
 #include "control.hpp"
+#include "HamiltonianCycleWilson.hpp"
 
 #define max(a, b) ((a) >= (b) ? (a) : (b))
 #define min(a, b) ((a) <  (b) ? (a) : (b))
@@ -41,50 +44,26 @@ float window_ratio = window_width * 1.0 / window_height;
 int fps = 25;
 int print = 1;
 
-int N = 12 * 2;
-const int NN = 12 * 2;
-/*
-int map[NN][NN] = {
-3,3,3,2,3,2, 3,2,3,2,3,2,
-4,1,2,1,4,2, 4,3,4,3,4,2,
-3,4,2,3,4,2, 4,1,2,1,1,2,
-4,1,3,4,2,1, 3,4,3,2,4,1,
-3,4,2,1,3,2, 4,2,1,3,3,2,
-4,1,1,4,1,3, 4,2,4,1,1,1,
+int N = 24;
+std::vector<int> map_data;
+int* get_map(int i, int j) {
+	return &map_data[i * N + j];
+}
+int get_map_val(int i, int j) {
+	return map_data[i * N + j];
+}
 
-3,3,3,2,4,2, 1,3,2,3,3,2,
-4,1,1,3,4,2, 4,1,3,4,2,1,
-3,2,4,1,2,1, 3,4,2,1,3,2,
-4,3,3,4,3,2, 4,2,1,4,2,1,
-4,2,1,2,1,2, 4,2,3,4,3,2,
-4,1,4,1,4,1, 4,1,4,1,1,1,};*/
-int map[NN][NN] = {
-2,1,2,1,2,1,2,1,2,1,1,1, 2,1,2,1,2,1,2,1,2,1,1,1,
-2,4,1,4,1,4,2,4,3,2,3,4, 2,4,1,4,1,4,2,4,3,2,3,4,
-2,3,3,2,3,4,2,4,1,2,4,1, 2,3,3,2,3,4,2,4,1,2,4,1,
-3,4,2,1,4,1,3,2,4,1,3,4, 3,4,2,1,4,1,3,2,4,1,3,4,
-2,1,1,3,2,4,1,1,3,2,4,1, 2,1,1,3,2,4,2,1,3,2,4,1,
-3,3,3,4,3,2,3,3,4,3,3,4, 3,3,3,4,2,4,1,3,4,3,3,4,
-2,1,1,2,1,1,4,1,2,1,1,1, 2,1,1,2,1,3,2,4,2,1,1,1,
-3,2,4,1,3,3,2,4,1,3,3,4, 3,2,4,1,3,4,2,4,1,3,3,4,
-2,1,3,2,4,1,3,2,3,4,2,1, 2,1,3,2,4,1,3,2,3,4,2,1,
-3,2,4,3,2,4,2,1,4,1,1,4, 3,2,4,3,2,4,2,1,4,1,1,4,
-2,1,4,1,2,4,2,3,2,3,2,4, 2,1,4,1,2,4,2,3,2,3,2,4,
-3,3,3,4,3,4,3,4,3,4,2,4, 2,3,3,4,3,4,3,4,3,4,3,4,
+void GenerateMap() {
+    HamiltonianCycleWilson solver(N);
+    solver.solve();
+	map_data.resize(N * N);
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            map_data[i * N + j] = solver.grid[i][j];
+        }
+    }
+}
 
-2,1,2,1,2,1,2,1,2,1,1,4, 1,4,2,1,2,1,2,1,2,1,1,1,
-2,4,1,4,1,4,2,4,3,2,3,3, 2,4,1,4,1,4,2,4,3,2,3,4,
-2,3,3,2,3,4,2,4,1,2,4,1, 2,3,3,2,3,4,2,4,1,2,4,1,
-3,4,2,1,4,1,3,2,4,1,3,4, 3,4,2,1,4,1,3,2,4,1,3,4,
-2,1,1,3,2,4,2,1,3,2,4,1, 2,1,1,3,2,4,1,1,3,2,4,1,
-3,3,3,4,2,4,1,3,4,3,3,4, 3,3,3,4,3,2,3,3,4,3,3,4,
-2,1,1,2,1,3,2,4,2,1,1,1, 2,1,1,2,1,1,4,1,2,1,1,1,
-3,2,4,1,3,4,2,4,1,3,3,4, 3,2,4,1,3,3,2,4,1,3,3,4,
-2,1,3,2,4,1,3,2,3,4,2,1, 2,1,3,2,4,1,3,2,3,4,2,1,
-3,2,4,3,2,4,2,1,4,1,1,4, 3,2,4,3,2,4,2,1,4,1,1,4,
-2,1,4,1,2,4,2,3,2,3,2,4, 2,1,4,1,2,4,2,3,2,3,2,4,
-3,3,3,4,3,4,3,4,3,4,3,4, 3,3,3,4,3,4,3,4,3,4,3,4,
-};
 
 bool Valid(int y, int x) {
 	if(y < 0 || y >= N || x < 0 || x >= N) return false;
@@ -156,6 +135,7 @@ void OptParse(char** argv) {
 
 			case 'n':
 				N = atoi(options.optarg);
+				if (N % 2 != 0) N++; // Ensure even
 				break;
 
 			case 'h':
@@ -234,8 +214,8 @@ void Render() {
 
 	GLuint MVPID = glGetUniformLocation(programID, "MVP");
 
-	GLfloat g_vertex_buffer_data[NN][NN][3] = {};
-	GLfloat g_vertex_buffer_data_d[NN][NN][3] = {};
+	std::vector<GLfloat> g_vertex_buffer_data;
+	std::vector<GLfloat> g_vertex_buffer_data_d;
 
 	GLuint vertex_buffer;
 	glGenBuffers(1, &vertex_buffer);
@@ -246,36 +226,48 @@ void Render() {
 
 //	glPointSize(10);
 	do {
+		if (frame_count % fps == 0) {
+			GenerateMap();
+		}
+
+		// Resize buffers if N changed or on first run
+		if (g_vertex_buffer_data.size() != N * N * 3) {
+			g_vertex_buffer_data.resize(N * N * 3);
+			g_vertex_buffer_data_d.resize(N * N * 3);
+		}
+
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glUseProgram(programID);
 
-		for(int i = 0; i < NN; i++)
-			for(int j = 0; j < NN; j++) {
+		int k = 0;
+		for(int i = 0; i < N; i++)
+			for(int j = 0; j < N; j++) {
 				int i_d, j_d;
-				switch(map[i][j]) {
+				switch(get_map_val(i, j)) {
 					case 1: i_d = i; j_d = j - 1; break;
-					case 2: i_d = i + 1; j_d = j; break;
+					case 2: i_d = i - 1; j_d = j; break;
 					case 3: i_d = i; j_d = j + 1; break;
-					case 4: i_d = i - 1; j_d = j; break;
+					case 4: i_d = i + 1; j_d = j; break;
 				}
 				float ratio_d = glm::fract(frame_count / 1.0 / fps);
 				float ratio = pow(ratio_d, 2);
-				float gap = 2.0 / (NN - 1);
-				g_vertex_buffer_data[j][i][0] = (-1 + gap * j) * (1 - ratio) + (-1 + gap * j_d) * ratio;
-				g_vertex_buffer_data[j][i][1] = (-1 + gap * i) * (1 - ratio) + (-1 + gap * i_d) * ratio;
-				g_vertex_buffer_data[j][i][2] = 2.4;
-				glm::vec2 direction = glm::vec2(g_vertex_buffer_data[j][i][0] - (-1 + gap * j), g_vertex_buffer_data[j][i][1] - (-1 + gap * i));
+				float gap = 2.0 / (N - 1);
+				g_vertex_buffer_data[k * 3 + 0] = (-1 + gap * j) * (1 - ratio) + (-1 + gap * j_d) * ratio;
+				g_vertex_buffer_data[k * 3 + 1] = (1 - gap * i) * (1 - ratio) + (1 - gap * i_d) * ratio;
+				g_vertex_buffer_data[k * 3 + 2] = 2.4;
+				glm::vec2 direction = glm::vec2(g_vertex_buffer_data[k * 3 + 0] - (-1 + gap * j), g_vertex_buffer_data[k * 3 + 1] - (1 - gap * i));
 				direction = glm::normalize(direction);
-				g_vertex_buffer_data_d[j][i][0] = g_vertex_buffer_data[j][i][0] - direction.x * gap * (1 - std::abs(ratio_d * 2 - 1)) * 0.5;
-				g_vertex_buffer_data_d[j][i][1] = g_vertex_buffer_data[j][i][1] - direction.y * gap * (1 - std::abs(ratio_d * 2 - 1)) * 0.5;
-				g_vertex_buffer_data_d[j][i][2] = 2.4;
+				g_vertex_buffer_data_d[k * 3 + 0] = g_vertex_buffer_data[k * 3 + 0] - direction.x * gap * (1 - std::abs(ratio_d * 2 - 1)) * 0.5;
+				g_vertex_buffer_data_d[k * 3 + 1] = g_vertex_buffer_data[k * 3 + 1] - direction.y * gap * (1 - std::abs(ratio_d * 2 - 1)) * 0.5;
+				g_vertex_buffer_data_d[k * 3 + 2] = 2.4;
+				k++;
 		}
 
 		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, g_vertex_buffer_data.size() * sizeof(GLfloat), g_vertex_buffer_data.data(), GL_DYNAMIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_d);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data_d), g_vertex_buffer_data_d, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, g_vertex_buffer_data_d.size() * sizeof(GLfloat), g_vertex_buffer_data_d.data(), GL_DYNAMIC_DRAW);
 
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
@@ -306,7 +298,7 @@ void Render() {
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
 		glUniformMatrix4fv(MVPID, 1, GL_FALSE, &MVP[0][0]);
 
-		glDrawArrays(GL_POINTS, 0, NN * NN);
+		glDrawArrays(GL_POINTS, 0, N * N);
 
 		glDisableVertexAttribArray(0);
 
