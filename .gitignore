@@ -32,6 +32,10 @@ __pycache__/
 dot-circulation-movement
 genmap
 
+# GLEW
+/src/thirdparty/glew-2.2.0.zip
+/src/thirdparty/glew-2.2.0/
+
 # Build
 /build/
 
