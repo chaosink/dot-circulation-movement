@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include "optparse.hpp"
 
-#define opterror(options, format, args...) \
-    snprintf(options->errmsg, sizeof(options->errmsg), format, args);
+#define opterror(options, format, ...) \
+    snprintf(options->errmsg, sizeof(options->errmsg), format, __VA_ARGS__)
 
 void optparse_init(struct optparse *options, char **argv)
 {
@@ -188,9 +188,11 @@ long_fallback(struct optparse *options,
               const struct optparse_long *longopts,
               int *longindex)
 {
-    char optstring[optstring_length(longopts)];
+    size_t len = optstring_length(longopts);
+    char *optstring = new char[len];
     optstring_from_long(longopts, optstring);
     int result = optparse(options, optstring);
+    delete[] optstring;
     if (longindex != NULL) {
         *longindex = -1;
         if (result != -1)
