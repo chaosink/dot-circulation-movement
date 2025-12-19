@@ -22,12 +22,21 @@
 *.a
 *.lib
 
+# Python
+__pycache__/
+
 # Executables
 *.exe
 *.out
 *.app
 dot-circulation-movement
 genmap
+
+# Build
+/build/
+
+# HTML
+*.html
 
 # Raw video
 raw_video
