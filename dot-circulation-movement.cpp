@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <vector>
 #include <stdlib.h>
@@ -40,9 +41,10 @@ int decoration    = 0;
 int fullscreen    = 0;
 int resizable     = 1;
 
-float window_ratio = window_width * 1.0 / window_height;
+float window_ratio = window_width * 1.f / window_height;
 int fps = 25;
 int print = 1;
+int save_frame = 0;
 
 int N = 24;
 std::vector<int> map_data;
@@ -116,10 +118,13 @@ void OptParse(char** argv) {
 	optparse_init(&options, argv);
 	int option;
 
-	while((option = optparse(&options, "dfrw: n: h")) != -1) {
+	while((option = optparse(&options, "dfrw: n: hs")) != -1) {
 		switch(option) {
 			case 'd':
 				decoration = 0;
+				break;
+			case 's': // Save frame option
+				save_frame = 1;
 				break;
 			case 'f':
 				fullscreen = 1;
@@ -130,7 +135,7 @@ void OptParse(char** argv) {
 			case 'w':
 				window_width = atoi(options.optarg);
 				window_height = atoi(options.optarg + Digit(window_width) + 1);
-				window_ratio = window_width * 1.0 / window_height;
+				window_ratio = window_width * 1.f / window_height;
 				break;
 
 			case 'n':
@@ -149,7 +154,13 @@ void OptParse(char** argv) {
 	if(fullscreen) {
 		window_width = 1920;
 		window_height = 1080;
-		window_ratio = window_width * 1.0 / window_height;
+		window_ratio = window_width * 1.f / window_height;
+	}
+
+	if(save_frame) {
+		window_width = 512;
+		window_height = 512;
+		window_ratio = window_width * 1.f / window_height;
 	}
 }
 
@@ -157,7 +168,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
 	window_width = width;
 	window_height = height;
-	window_ratio = window_width * 1.0 / window_height;
+	window_ratio = window_width * 1.f / window_height;
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -170,7 +181,7 @@ int InitGL() {
 		return -1;
 	}
 
-	glfwWindowHint(GLFW_SAMPLES, 4);
+	glfwWindowHint(GLFW_SAMPLES, save_frame ? 10 : 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -222,6 +233,9 @@ void Render() {
 	GLuint vertex_buffer_d;
 	glGenBuffers(1, &vertex_buffer_d);
 
+	std::vector<GLbyte*> frame;
+	if (save_frame) frame.reserve(2000);
+
 	int frame_count = 0;
 
 //	glPointSize(10);
@@ -250,17 +264,17 @@ void Render() {
 					case 3: i_d = i; j_d = j + 1; break;
 					case 4: i_d = i + 1; j_d = j; break;
 				}
-				float ratio_d = glm::fract(frame_count / 1.0 / fps);
-				float ratio = pow(ratio_d, 2);
-				float gap = 2.0 / (N - 1);
+				float ratio_d = glm::fract((float)(frame_count / 1.f / fps));
+				float ratio = powf(ratio_d, 2);
+				float gap = 2.f / (N - 1);
 				g_vertex_buffer_data[k * 3 + 0] = (-1 + gap * j) * (1 - ratio) + (-1 + gap * j_d) * ratio;
 				g_vertex_buffer_data[k * 3 + 1] = (1 - gap * i) * (1 - ratio) + (1 - gap * i_d) * ratio;
-				g_vertex_buffer_data[k * 3 + 2] = 2.4;
+				g_vertex_buffer_data[k * 3 + 2] = 2.4f;
 				glm::vec2 direction = glm::vec2(g_vertex_buffer_data[k * 3 + 0] - (-1 + gap * j), g_vertex_buffer_data[k * 3 + 1] - (1 - gap * i));
 				direction = glm::normalize(direction);
-				g_vertex_buffer_data_d[k * 3 + 0] = g_vertex_buffer_data[k * 3 + 0] - direction.x * gap * (1 - std::abs(ratio_d * 2 - 1)) * 0.5;
-				g_vertex_buffer_data_d[k * 3 + 1] = g_vertex_buffer_data[k * 3 + 1] - direction.y * gap * (1 - std::abs(ratio_d * 2 - 1)) * 0.5;
-				g_vertex_buffer_data_d[k * 3 + 2] = 2.4;
+				g_vertex_buffer_data_d[k * 3 + 0] = g_vertex_buffer_data[k * 3 + 0] - direction.x * gap * (1 - std::abs(ratio_d * 2 - 1)) * 0.5f;
+				g_vertex_buffer_data_d[k * 3 + 1] = g_vertex_buffer_data[k * 3 + 1] - direction.y * gap * (1 - std::abs(ratio_d * 2 - 1)) * 0.5f;
+				g_vertex_buffer_data_d[k * 3 + 2] = 2.4f;
 				k++;
 		}
 
@@ -302,12 +316,18 @@ void Render() {
 
 		glDisableVertexAttribArray(0);
 
+		if (save_frame && frame_count < 2000) {
+			GLbyte *pixels = new GLbyte[window_width * window_height * 3];
+			glReadPixels(0, 0, window_width, window_height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+			frame.push_back(pixels);
+		}
+
 		double time_current = glfwGetTime();
 		double time_accurate = ++frame_count / 1.0 / fps;
 		double time_delta = time_accurate - time_current;
 		time_delta = time_delta > 0 ? time_delta : 0;
 		if(print) printf("frame_count:%d time_accurate:%lf time_current:%lf time_delta:%lf\n", frame_count, time_accurate, time_current, time_delta);
-		usleep(time_delta * 1000000);
+		usleep(static_cast<long long>(time_delta * 1000000));
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -316,6 +336,27 @@ void Render() {
 	glDeleteBuffers(1, &vertex_buffer);
 	glDeleteVertexArrays(1, &VertexArrayID);
 	glDeleteProgram(programID);
+
+	if (save_frame) {
+		FILE *out = fopen("raw_video", "wb");
+		if (out) {
+			// Save frames from fps to 2*fps (1 second worth of frames after the first second)
+			// Adjust range as needed. The original code saved fps to 2*fps.
+			size_t start_frame = fps;
+			size_t end_frame = 5 * fps;
+
+			if (frame.size() < end_frame) end_frame = frame.size();
+			if (start_frame < end_frame) {
+				for(size_t i = start_frame; i < end_frame; i++) {
+					fwrite(frame[i], window_width * window_height * 3, 1, out);
+				}
+			}
+			fclose(out);
+			printf("Saved frames to raw_video\n");
+		}
+		// Cleanup memory
+		for(auto p : frame) delete[] p;
+	}
 }
 
 int main(int argc, char** argv) {

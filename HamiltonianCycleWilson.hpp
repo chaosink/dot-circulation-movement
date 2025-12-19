@@ -82,7 +82,7 @@ public:
                 if (u_c > 0) valid_moves.push_back({u_r, u_c - 1});
                 if (u_c < C - 1) valid_moves.push_back({u_r, u_c + 1});
 
-                std::uniform_int_distribution<> disMove(0, valid_moves.size() - 1);
+                std::uniform_int_distribution<> disMove(0, static_cast<int>(valid_moves.size() - 1));
                 std::pair<int, int> next = valid_moves[disMove(gen)];
 
                 walk_path[{u_r, u_c}] = next;
