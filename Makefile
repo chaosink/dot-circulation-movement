@@ -3,13 +3,13 @@ GLEW = `pkg-config --cflags glew` `pkg-config --libs glew`
 
 INC =
 LIB =
-COMMON = shader.cpp optparse.cpp control.cpp
+COMMON = src/shader.cpp src/optparse.cpp src/control.cpp
 TARGET = dot-circulation-movement
 
 all: $(TARGET) genmap
 
-$(TARGET): $(TARGET).cpp $(COMMON)
-	clang++ $(TARGET).cpp -o $(TARGET) $(COMMON) $(GLFW) $(GLEW) $(INC) $(LIB)
+$(TARGET): src/$(TARGET).cpp $(COMMON)
+	clang++ src/$(TARGET).cpp -o $(TARGET) $(COMMON) $(GLFW) $(GLEW) $(INC) $(LIB)
 
 genmap: genmap.cpp
-	clang++ genmap.cpp -o genmap -g
+	clang++ src/genmap.cpp -o genmap -g

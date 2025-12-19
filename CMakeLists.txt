@@ -13,14 +13,14 @@ include_directories(
 
 # Define common sources
 set(COMMON_SOURCES
-    shader.cpp
-    optparse.cpp
-    control.cpp
+    src/shader.cpp
+    src/optparse.cpp
+    src/control.cpp
 )
 
 # Main executable
 add_executable(dot-circulation-movement
-    dot-circulation-movement.cpp
+    src/dot-circulation-movement.cpp
     ${COMMON_SOURCES}
 )
 
@@ -40,10 +40,10 @@ target_include_directories(dot-circulation-movement
 )
 
 # Genmap executable
-add_executable(genmap genmap.cpp)
+add_executable(genmap src/genmap.cpp)
 
 # Copy shader files to build directory
-file(GLOB SHADERS "*.glsl")
+file(GLOB SHADERS "shaders/*.glsl")
 foreach(SHADER ${SHADERS})
     add_custom_command(
         TARGET dot-circulation-movement POST_BUILD
